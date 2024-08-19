@@ -1,0 +1,96 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/pinokkio?serverTimezone=Asia/Seoul
+    username: root
+    password: ssafy!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  redis:
+    host: localhost
+    port: 6379
+
+  mail:
+    host: smtp.naver.com
+    port: 465
+    username: ${EMAIL}
+    password: ${EMAIL_PW}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+      mail.smtp.ssl.trust: smtp.naver.com
+      mail.smtp.starttls.enable: true
+  jwt:
+    secret: ${JWT_SECRET}
+
+cloud:
+  aws:
+    s3:
+      bucket: ${BUCKET}
+    credentials:
+      accessKey: ${S3_ACCESS_KEY}
+      secretKey: ${S3_SECRET_KEY}
+    region:
+      static: ${REGION}
+      auto: false
+    stack:
+      auto: false
+
+s3:
+  host:
+    name: https://${BUCKET}.s3.${REGION}.amazonaws.com/
+
+
+default-image:
+    https://pinokkio.s3.ap-northeast-2.amazonaws.com/item/noImage.jpg
+
+openvidu:
+  url: https://i11a601.p.ssafy.io:8443/
+  secret: MY_SECRET
+
+encryption:
+          key: ${ENCRYPTION_KEY}
+
+fastapi:
+  # 수정 유의
+  url: https://i11a601.p.ssafy.io
+  timeout: 10000
+
+grpc:
+  server:
+    port: 50051
+
+redis:
+  cache:
+    ttl: 3600
+
+springdoc:
+  swagger-ui:
+    groups-order: DESC
+    tags-sorter: alpha
+    operations-sorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+    defaultModelsExpandDepth: 2
+    defaultModelExpandDepth: 2
+  api-docs:
+    path: /api-docs
+  show-actuator: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  writer-with-default-pretty-printer: true
+  model-and-view-allowed: true
+  paths-to-match:
+    - /api/**

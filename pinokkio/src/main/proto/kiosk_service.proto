@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.pinokkio.grpc";
+option java_outer_classname = "KioskServiceProto";
+
+package kiosk;
+
+service KioskService {
+  rpc KioskLogin (KioskId) returns (LoginResponse) {}
+  rpc ReceiveDistanceData (DistanceData) returns (Empty) {}
+  rpc SetBrightness (BrightnessRequest) returns (Empty) {}
+  rpc CaptureImages (CaptureImagesRequest) returns (CaptureImagesResponse) {}
+  rpc ResetKiosk (ResetRequest) returns (Empty) {}
+  rpc SendControlSignal (ControlSignalRequest) returns (Empty) {}
+  rpc StopDistanceMeasurement (StopDistanceMeasurementRequest) returns (Empty) {}
+}
+
+message KioskId {
+  string id = 1;
+}
+
+message LoginResponse {
+  string message = 1;
+}
+
+message DistanceData {
+  string kiosk_id = 1;
+  double distance = 2;
+}
+
+message Empty {}
+
+message BrightnessRequest {
+  int32 brightness = 1;
+}
+
+message CaptureImagesRequest {
+  string kiosk_id = 1;
+  repeated bytes images = 2;
+}
+
+message CaptureImagesResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ResetRequest {}
+
+message ControlSignalRequest {
+  string signal = 1;
+}
+
+message StopDistanceMeasurementRequest {
+  string kiosk_id = 1;
+}
