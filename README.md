@@ -59,6 +59,7 @@ Notion : [링크](https://fluffy-smell-11f.notion.site/SSAFY-PJT-5cf6c9977a6c460
 - redux-persist: 6.0.0
 
 ## 아키텍처
+![Pinokio 아키텍처](https://github.com/user-attachments/assets/87a78eaf-1a6b-435a-8a6e-1c4b49a318ec)
 
 ## ERD
 
