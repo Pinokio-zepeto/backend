@@ -1,66 +1,48 @@
 ![PinokioLogo](https://github.com/user-attachments/assets/521896e7-2afa-4da6-a5df-dfe230f48df1)
 
-## 개요
+## 주요 개발 내용(BE)
+### 0. 회원 등록
+    - 3가지 고객 타입 (포스, 키오스크, 상담원) 등록 기능 구현
+    - 이메일 기반, Naver SMPT를 통한 인증
+    - 랜덤 인증번호 생성 후 Redis에5분간 캐싱해 이와 대조하는 방식 
+### 1. 키오스크
+  - 수정 / 삭제 / 정보 반환
+  - 실키오스크 기기와 gRPC 통신
+### 2. 포스
+  - 키오스크 등록 / 키오스크 정보 조회
+### 3. 상담원
+  - 탈퇴
+### 4. 상담
+  - 상담 요청 / 요청 응답을 위한 WebSocket 통신
+  - OpenVidu 세션을 활용한 상담 기능 (입장/퇴장 관리)
+### 5. 상품 관리
+  - 상품 CRUD
+  - 상품 이미지 등록의 경우 Amazon S3에 업로드
+  
+### 6. 주문 관리 
+  - 주문 생성 / 상태 변경 / 통계값 조회
+  - 단건 주문 총 가격 Redis 캐싱 -> 매장별 총 판매액 정보 look-aside 패턴 적용
+  - 매 일/주/월/년 스케줄러를 통한 판매 통계 DB 저장
+    
+### 7. 고객 관리
+  - 키오스크 기기로부터 얻은 사진 정보를 FastAPI로 전송해 Face Embedding Vector 저장
+  - 임베딩 정보를 이용해 기존 고객들과의 유사도 계산
+  - 고객 정보 등록 및 수정
 
-노인분들이 키오스크를 잘 사용하지 못하는 것을 보고 사용을 도와드리는 서비스가 있다면 좋겠다는 생각이 들어 기획하게 되었습니다.
+## 기술적 고민
+### 1. 인가 처리
+3가지 고객 타입(포스, 키오스크, 상담원)에서 각자 요구되는 필드 값이 명확하게 다르기 때문에 모두 별도의 테이블로 설계되었습니다.  
+스프링 시큐리티의 UserDetail의 오버라이딩 메소드, 그리고 JwtProvider를 커스텀 해서 분리된 유저 권한을 제공할 수 있었습니다.   
+이후에는 Security Config를 통해서 각 권한이 접근할 수 있는 RestAPI를 통제하도록 설정할 수 있었습니다.  
 
-프랜차이즈 매장에서 기존에 있던 상담원 직원을 활용하여 노년층 고객들에게 화상 통화를 통해 도움을 드리는 서비스입니다.
+### 2. OpenVidu
+상담원과 고객이 최대 1:3까지 상담이 가능하다는 조건을 만족시켜야 했으며, 상담 세션 외부에서 입장 요청과 이에 대한 응답을 송수신할 수 있어야 했습니다.   
+오픈비두 세션 외부에서 상담원이라는 Role을 가진 유저와 송신하는 기능을 웹소켓을 통해 구현하였습니다.  
+이때, 상담원 또는 키오스크의 식별자를 KEY로 하고, 해당 사용자의 웹소켓을 VALUE로 하는 ConcurrentHashMap 으로 관리하였습니다.  
+또한, 여러 고객이 동시에 같은 방에 접근하거나 수정할 때 발생할 수 있는 레이스 컨디션을 방지하기 위해 각 방에 대한 ReentrantLock을 관리하여, 주요 메서드에서 해당 방의 Lock을 획득하고 작업을 수행한 후 반드시 Lock을 해제하도록 하였습니다.  
 
-## 문서
+### 3. 브랜드 판매액 통계
+점주가 관리하는 포스기는 같은 브랜드 지점들의 기간별 판매 금액 통계 정보를 제공합니다.  
+이 기능은 기간별 매출 통계액을 조회할때마다 반복적인 연산이 발생하는 것을 고려하여 Redis를 사용하게 되었습니다.
 
-Notion : [링크](https://fluffy-smell-11f.notion.site/SSAFY-PJT-5cf6c9977a6c460a98d2f81f9ae9db14)
-
-요구사항명세서, 기능명세서, API연동규격서, GanttChart : [링크](https://docs.google.com/spreadsheets/d/16FjF0Qtb4-MWAu4Q0hWI4wvSguh9GAdlqrgbwzFRMfc/edit?gid=9229699#gid=9229699)
-
-## 팀원 및 역할
-
-| 이름   | 역할  | 내용                      |
-| ------ | ----- | ------------------------- |
-| 김준우 | FE    | 프론트엔드 개발           |
-| 문재성 | FE    | 프론트엔드 개발, Openvidu |
-| 이상무 | FE    | 프론트엔드 개발           |
-| 전용수 | BE    | 백엔드 개발               |
-| 정연서 | BE    | 백앤드 개발, Openvidu     |
-| 최장우 | Infra | CI/CD, Openvidu           |
-
-## 기술 스택
-
-### 백엔드(Spring Boot, Gradle)
-
-- Spring Boot: 3.2.7
-- Spring Dependency Management: 1.1.5
-- Google Protobuf Plugin: 0.8.19
-- Java Language Version: 21
-- OpenVidu Java Client: 2.20.0
-- LiveKit Server: 0.5.11
-- Springdoc OpenAPI UI: 2.0.2
-- JSON Library: 20230227
-- Spring Cloud AWS: 2.2.6.RELEASE
-- JJWT API: 0.11.5
-- JJWT Impl: 0.11.4
-- JJWT Jackson: 0.11.4
-- gRPC Netty Shaded: 1.57.2
-- gRPC Protobuf: 1.57.2
-- gRPC Stub: 1.57.2
-- Apache Commons Math: 3.6.1
-- javax.annotation API: 1.3.2
-- Protobuf Java: 3.23.4
-- Protobuf Java Util: 3.23.4
-- Apache HttpClient 5: 5.2.1
-- Protoc-gen-grpc-java: 1.57.
-- Protobuf Compiler (protoc): 3.23.4
-
-### 프론트엔드(React, Redux)
-
-- React: 18.2.0
-- Axios: 1.7.2
-- Prettier: 2.8.8
-- redux: 5.0.1
-- redux-persist: 6.0.0
-
-## 아키텍처
-![Pinokio 아키텍처](https://github.com/user-attachments/assets/87a78eaf-1a6b-435a-8a6e-1c4b49a318ec)
-
-## ERD
-
-![Pinkio ERD다이어그램](https://github.com/user-attachments/assets/ac73acdc-8e1d-40ef-91b6-cc74ee9a9e83)
+레디스는 스케줄링을 통해서 최근 30일간의 매장별 판매액 합산 정보를 가지는데, 30일 이내 정보는 레디스 내부에서 합산하고, 더 오랜 기간의 정보를 원하는 경우 DB탐색을 진행하는 look-aside 패턴을 캐시전략으로 사용하였습니다.
