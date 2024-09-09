@@ -1,6 +1,6 @@
 ![PinokioLogo](https://github.com/user-attachments/assets/521896e7-2afa-4da6-a5df-dfe230f48df1)
 
-## 주요 개발 내용(BE)
+## 주요 개발 내용(BE) 
 ### 0. 회원 등록
   - 3가지 고객 타입 (포스, 키오스크, 상담원) 등록 기능 구현
   - 이메일 기반, Naver SMPT를 통한 인증
@@ -8,11 +8,11 @@
   
 ### 1. 키오스크
   - 수정 / 삭제 / 정보 반환
-  - 거리 감지:  
+  - **거리 감지**:  
      아두이노 센서를 통해 고객의 거리를 측정하고, 일정 거리 내에 고객이 감지되면 사진을 촬영한 뒤 데이터를 처리    
-  - 사진 촬영 및 전송:
+  - **사진 촬영 및 전송**:
     감지된 고객의 사진을 OpenCV로 촬영하고, Base64로 인코딩한 후 Spring 서버에 gRPC로 전송  
-  - gRPC 통신:   
+  - **gRPC 통신**:   
     키오스크와 Spring 서버 간의 데이터 전송은 gRPC를 통해 비동기로 처리(거리 데이터와 사진 파일 전송)  
 
     **코드**
@@ -109,8 +109,7 @@
                   return None
               # 얼굴 영역의 크기를 기준으로 가장 큰 얼굴 선택
               return max(faces, key=lambda face: (face.bbox[2] - face.bbox[0]) * (face.bbox[3] - face.bbox[1]))
-          
-          ```
+        ```
     
 ### 2. 포스
   - 키오스크 등록 / 키오스크 정보 조회
@@ -418,7 +417,6 @@ async def analyze_faces(data: ImageData):
     return JSONResponse(content={"result": best_result})
 ```
 ## 5.Spring SSE (Server-Sent Events)
-
 **연결 관리**:  
     - 각 `SseEmitter`는 클라이언트의 연결 상태에 따라 수명 주기가 다르므로, 연결 완료 또는 타임아웃 시 `emitters` 리스트에서 해당 객체를 제거하여 자원 누수를 방지했습니다.  
   
